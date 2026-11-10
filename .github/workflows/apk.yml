@@ -1,0 +1,26 @@
+name: Build APK
+on:
+  workflow_dispatch:
+  push:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: unzip -q *.zip
+      - name: Fix show() calls
+        run: sed -i 's/ad\.show(showConfig, object/ad.show(this, showConfig, object/' UnityAdsTestConsole/app/src/main/java/com/example/unityadstestconsole/MainActivity.kt
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: 8.13
+      - name: Build
+        working-directory: UnityAdsTestConsole
+        run: gradle assembleDebug --console=plain
+      - uses: actions/upload-artifact@v4
+        with:
+          name: app-debug
+          path: UnityAdsTestConsole/app/build/outputs/apk/debug/app-debug.apk
